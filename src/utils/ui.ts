@@ -1,8 +1,12 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '../theme/colors';
+import { radii } from '../theme/radii';
 
 // אייקון הנקודות המשותף לכל המסכים, במקום לכתוב את המילה "נקודות" בכל מקום.
 // בחרתי יהלום (💎) ולא מטבע/כוכב, כי כוכב (⭐) כבר תפוס לסימון פנגרם,
 // ומטבע (🪙) פחות ברור ויזואלית בגדלים קטנים על רקע צהוב-חום של האפליקציה.
+// זהו טקסט מוטמע בתוך מחרוזות ניקוד דינמיות, ולכן נשאר אימוג'י (אין אייקון
+// וקטורי שאפשר לשלב בתוך Text כזה) - לא כמו שאר האייקונים באפליקציה.
 export const POINTS_ICON = '💎';
 
 // כמה זמן הודעת האישור ("הדיווח נשלח") נשארת על המסך לפני שהיא נסגרת מעצמה.
@@ -21,16 +25,15 @@ export const HEADER_TOP = 48; // מרחק אנכי מראש המסך
 // אם יתווספו אריחים עם אותיות כפולות בעתיד.
 export const ALLOW_REPEATED_TILE_IN_WORD = false;
 
+export const HEADER_ICON_SIZE = 18;
+
 export const headerIconStyles = StyleSheet.create({
   button: {
     width: 32,
     height: 32,
-    borderRadius: 16,
-    backgroundColor: '#EDE0C8',
+    borderRadius: radii.lg,
+    backgroundColor: colors.cardLocked,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  text: {
-    fontSize: 15,
   },
 });

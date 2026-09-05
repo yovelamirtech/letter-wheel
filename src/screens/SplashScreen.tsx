@@ -1,9 +1,11 @@
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { tapHaptic } from '../utils/haptics';
 import { playClickSound } from '../utils/sound';
-import { HEADER_INSET, HEADER_TOP, headerIconStyles } from '../utils/ui';
+import { HEADER_ICON_SIZE, HEADER_INSET, HEADER_TOP, headerIconStyles } from '../utils/ui';
 import { FONTS } from '../utils/fonts';
+import { colors } from '../theme/colors';
 
 interface Props {
   onStart: () => void;
@@ -22,7 +24,7 @@ export default function SplashScreen({ onStart, onOpenSettings }: Props) {
         }}
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       >
-        <Text style={headerIconStyles.text}>⚙️</Text>
+        <Ionicons name="settings-outline" size={HEADER_ICON_SIZE} color={colors.text} />
       </TouchableOpacity>
 
       <View style={styles.iconDecor}>

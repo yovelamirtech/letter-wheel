@@ -13,15 +13,19 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { ALL_WORDS } from '../data/dictionary';
 import { computeCirclePositions, Point } from '../utils/circleLayout';
 import { computeLineStyle, distance } from '../utils/lineGeometry';
 import { buildDictionarySet } from '../utils/wordValidator';
 import { restoreState, submitWord } from '../utils/gameLogic';
 import { FONTS } from '../utils/fonts';
+import { colors } from '../theme/colors';
+import { shadows } from '../theme/shadows';
 import {
   ALLOW_REPEATED_TILE_IN_WORD,
   CONFIRMATION_DURATION_MS,
+  HEADER_ICON_SIZE,
   HEADER_INSET,
   POINTS_ICON,
   headerIconStyles,
@@ -424,7 +428,7 @@ export default function GameScreen({
               onPress={openReportModal}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
-              <Text style={headerIconStyles.text}>🚩</Text>
+              <Ionicons name="flag-outline" size={HEADER_ICON_SIZE} color={colors.text} />
             </TouchableOpacity>
             <TouchableOpacity
               style={headerIconStyles.button}
@@ -435,7 +439,7 @@ export default function GameScreen({
               }}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
-              <Text style={headerIconStyles.text}>⚙️</Text>
+              <Ionicons name="settings-outline" size={HEADER_ICON_SIZE} color={colors.text} />
             </TouchableOpacity>
           </View>
         </View>
@@ -455,14 +459,11 @@ export default function GameScreen({
                 { transform: [{ scale: feedbackScale }], opacity: feedbackOpacity },
               ]}
             >
-              <Text
-                style={[
-                  styles.invalidX,
-                  symbolFeedback === 'duplicate' && styles.duplicateSymbol,
-                ]}
-              >
-                {symbolFeedback === 'duplicate' ? '↺' : '✕'}
-              </Text>
+              <Ionicons
+                name={symbolFeedback === 'duplicate' ? 'refresh' : 'close'}
+                size={30}
+                color={symbolFeedback === 'duplicate' ? colors.warning : colors.error}
+              />
             </Animated.View>
           )}
         </View>
@@ -532,7 +533,7 @@ export default function GameScreen({
             accessibilityLabel="ערבוב אותיות"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={styles.shuffleButtonText}>🔀</Text>
+            <Ionicons name="shuffle-outline" size={22} color={colors.text} />
           </TouchableOpacity>
           <View style={styles.controlsSpacer} />
         </View>
@@ -719,9 +720,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  shuffleButtonText: {
-    fontSize: 18,
-  },
   line: {
     position: 'absolute',
     height: 6,
@@ -739,11 +737,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F4C542',
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 2 },
+    ...shadows.showcase,
   },
   letterTileSelected: {
     backgroundColor: '#3A2E1F',
@@ -764,15 +758,6 @@ const styles = StyleSheet.create({
     bottom: -8,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  invalidX: {
-    fontSize: 30,
-    lineHeight: 40,
-    fontWeight: '800',
-    color: '#C0392B',
-  },
-  duplicateSymbol: {
-    color: '#B5651D',
   },
   foundListWrapper: {
     flex: 1,
