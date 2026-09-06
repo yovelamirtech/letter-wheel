@@ -1,0 +1,13 @@
+import { Platform } from 'react-native';
+import { TestIds } from 'react-native-google-mobile-ads';
+
+// Google's official test ad unit IDs - always show real test ads that are
+// safe to click, never live ads. Replace with the real banner IDs from your
+// own AdMob account before publishing (see README instructions).
+const REAL_BANNER_AD_UNIT_ID = Platform.select({
+  ios: 'ca-app-pub-4185202215539389/4563944383',
+  android: 'ca-app-pub-4185202215539389/1888950637',
+  default: TestIds.BANNER,
+});
+
+export const BANNER_AD_UNIT_ID = __DEV__ ? TestIds.BANNER : REAL_BANNER_AD_UNIT_ID;

@@ -11,6 +11,7 @@ import ExplanationScreen from './ExplanationScreen';
 import SettingsScreen from './SettingsScreen';
 import LevelSelectScreen from './LevelSelectScreen';
 import GameScreen from './GameScreen';
+import BottomBannerAd from '../components/BottomBannerAd';
 
 type Screen =
   | { name: 'splash' }
@@ -53,51 +54,6 @@ export default function AppRoot() {
     setScreen({ name: 'levels' });
   }
 
-  if (!fontsReady) {
-    // מחכים לפונטים לפני הרינדור הראשון, אחרת מסך הפתיחה מוצג לרגע
-    // בפונט ברירת המחדל ואז "קופץ" לפונט הנכון.
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="large" color="#3A2E1F" />
-      </View>
-    );
-  }
-
-  if (screen.name === 'splash') {
-    // מסך הפתיחה מוצג מיד, בלי לחכות לטעינת AsyncStorage - אין בו
-    // תלות בהתקדמות שמורה, אז אין סיבה להשהות אותו.
-    return (
-      <SplashScreen
-        onStart={handleStart}
-        onOpenSettings={() => setScreen({ name: 'settings', returnTo: { name: 'splash' } })}
-      />
-    );
-  }
-
-  if (screen.name === 'explanation') {
-    return <ExplanationScreen onDone={handleExplanationDone} />;
-  }
-
-  if (screen.name === 'settings') {
-    const returnTo = screen.returnTo;
-    return (
-      <SettingsScreen
-        onBack={() => setScreen(returnTo)}
-        onResetProgress={handleResetProgress}
-      />
-    );
-  }
-
-  if (!progress) {
-    // טעינת ההתקדמות מ-AsyncStorage היא אסינכרונית - מסך המתנה קצרצר
-    // עד שהיא מסתיימת, כדי לא להבזיק "0 נקודות" לפני שהנתון האמיתי נטען
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="large" color="#3A2E1F" />
-      </View>
-    );
-  }
-
   function handleWordFound(levelIndex: number, word: string, scoreGained: number) {
     setProgress((prev) => {
       if (!prev) return prev;
@@ -107,9 +63,46 @@ export default function AppRoot() {
     });
   }
 
-  if (screen.name === 'game') {
+  let content: React.ReactNode;
+
+  if (!fontsReady) {
+    // מחכים לפונטים לפני הרינדור הראשון, אחרת מסך הפתיחה מוצג לרגע
+    // בפונט ברירת המחדל ואז "קופץ" לפונט הנכון.
+    content = (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color="#3A2E1F" />
+      </View>
+    );
+  } else if (screen.name === 'splash') {
+    // מסך הפתיחה מוצג מיד, בלי לחכות לטעינת AsyncStorage - אין בו
+    // תלות בהתקדמות שמורה, אז אין סיבה להשהות אותו.
+    content = (
+      <SplashScreen
+        onStart={handleStart}
+        onOpenSettings={() => setScreen({ name: 'settings', returnTo: { name: 'splash' } })}
+      />
+    );
+  } else if (screen.name === 'explanation') {
+    content = <ExplanationScreen onDone={handleExplanationDone} />;
+  } else if (screen.name === 'settings') {
+    const returnTo = screen.returnTo;
+    content = (
+      <SettingsScreen
+        onBack={() => setScreen(returnTo)}
+        onResetProgress={handleResetProgress}
+      />
+    );
+  } else if (!progress) {
+    // טעינת ההתקדמות מ-AsyncStorage היא אסינכרונית - מסך המתנה קצרצר
+    // עד שהיא מסתיימת, כדי לא להבזיק "0 נקודות" לפני שהנתון האמיתי נטען
+    content = (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color="#3A2E1F" />
+      </View>
+    );
+  } else if (screen.name === 'game') {
     const level = screen.level;
-    return (
+    content = (
       <GameScreen
         // ה-key מכריח מחדש (remount) כשעוברים בין שלבים שונים, כדי שה-state
         // הפנימי של GameScreen (המילה שנבנית, המעגל וכו') יתאפס נקי
@@ -121,20 +114,33 @@ export default function AppRoot() {
         onOpenSettings={() => setScreen({ name: 'settings', returnTo: { name: 'game', level } })}
       />
     );
+  } else {
+    content = (
+      <LevelSelectScreen
+        levels={LEVELS}
+        progress={progress}
+        onSelectLevel={(level) => setScreen({ name: 'game', level })}
+        onBackToSplash={() => setScreen({ name: 'splash' })}
+        onOpenSettings={() => setScreen({ name: 'settings', returnTo: { name: 'levels' } })}
+      />
+    );
   }
 
   return (
-    <LevelSelectScreen
-      levels={LEVELS}
-      progress={progress}
-      onSelectLevel={(level) => setScreen({ name: 'game', level })}
-      onBackToSplash={() => setScreen({ name: 'splash' })}
-      onOpenSettings={() => setScreen({ name: 'settings', returnTo: { name: 'levels' } })}
-    />
+    <View style={styles.root}>
+      <View style={styles.content}>{content}</View>
+      <BottomBannerAd />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+  },
   loading: {
     flex: 1,
     justifyContent: 'center',
