@@ -1,10 +1,12 @@
 import React from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Level, StoredProgress } from '../types';
 import { getFoundWordsForLevel } from '../utils/progress';
 import { FONTS } from '../utils/fonts';
+import { colors } from '../theme/colors';
 import { isLevelUnlocked } from '../data/levels';
-import { HEADER_INSET, POINTS_ICON, headerIconStyles } from '../utils/ui';
+import { HEADER_ICON_SIZE, HEADER_INSET, POINTS_ICON, headerIconStyles } from '../utils/ui';
 import { tapHaptic } from '../utils/haptics';
 import { playClickSound } from '../utils/sound';
 
@@ -34,7 +36,7 @@ export default function LevelSelectScreen({
           }}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
-          <Text style={styles.headerIcon}>🏠</Text>
+          <Ionicons name="home-outline" size={22} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.title}>שלבים</Text>
         {/* גלגל ההגדרות יושב בפינה השמאלית העליונה בכל מסכי האפליקציה */}
@@ -51,7 +53,7 @@ export default function LevelSelectScreen({
             }}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
-            <Text style={headerIconStyles.text}>⚙️</Text>
+            <Ionicons name="settings-outline" size={HEADER_ICON_SIZE} color={colors.text} />
           </TouchableOpacity>
         </View>
       </View>
@@ -70,7 +72,12 @@ export default function LevelSelectScreen({
             // המספר הנדרש + אייקון הנקודות. בלי "דורש X נקודות".
             return (
               <TouchableOpacity style={[styles.card, styles.cardLocked]} disabled activeOpacity={1}>
-                <Text style={styles.lockIconCentered}>🔒</Text>
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={22}
+                  color={colors.textFaint}
+                  style={styles.lockIconCentered}
+                />
                 <Text style={styles.lockedCost}>
                   {item.requiredScore} {POINTS_ICON}
                 </Text>
@@ -142,9 +149,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  headerIcon: {
-    fontSize: 22,
-  },
   list: {
     paddingHorizontal: 16,
     paddingBottom: 24,
@@ -192,7 +196,6 @@ const styles = StyleSheet.create({
     color: '#3A2E1F',
   },
   lockIconCentered: {
-    fontSize: 22,
     marginBottom: 4,
   },
   lockedCost: {
