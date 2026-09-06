@@ -6,7 +6,7 @@ import { TestIds } from 'react-native-google-mobile-ads';
 // own AdMob account before publishing (see README instructions).
 const REAL_BANNER_AD_UNIT_ID = Platform.select({
   ios: 'ca-app-pub-4185202215539389/4563944383',
-  android: 'ca-app-pub-REPLACE_ME/REPLACE_ME',
+  android: 'ca-app-pub-4185202215539389/1888950637',
   default: TestIds.BANNER,
 });
 
