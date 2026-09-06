@@ -85,3 +85,41 @@ can read it. That is expected — Web3Forms access keys are designed for client-
 use. Keeping it out of the public repo is what actually matters, since a key sitting
 in a public repo gets scraped and turned into inbox spam. If that happens anyway,
 rotate the key in the Web3Forms dashboard and re-run the command above.
+
+## App store readiness
+
+- Display name in `app.json` is "גלגל מילים"; the `slug`
+  (`hebrew-word-game`) stays as-is since it's just the internal Expo
+  project identifier, not user-facing.
+- Privacy policy: [PRIVACY.md](./PRIVACY.md) (link to the GitHub-rendered
+  page — `https://github.com/yovelamirtech/letter-wheel/blob/main/PRIVACY.md`
+  — when filling out App Store Connect / Play Console privacy fields).
+  It documents the real AdMob banner ad unit already wired in
+  `app.json` / `src/ads/adUnitIds.ts`, and the optional Web3Forms bug
+  report.
+- `app.json` has real `ios.bundleIdentifier` / `android.package`
+  (`com.yovlezstudio.wordswheel`), starting build numbers, and an
+  `ios.infoPlist.NSUserTrackingUsageDescription` string (required by
+  Apple because the app links Google Mobile Ads / accesses IDFA).
+- `src/ads/adsInit.ts` runs once on launch: it gathers GDPR consent via
+  AdMob's `AdsConsent` API (required by Google for EEA/UK/Switzerland
+  users regardless of where the publisher is based) and, on iOS, asks
+  for App Tracking Transparency permission before the SDK initializes.
+  The `expo-tracking-transparency` entry in `package.json` is
+  unpinned (`*`) because this project's Expo SDK version couldn't be
+  matched to an exact package version from here — run
+  `npx expo install expo-tracking-transparency` once before your first
+  build so it locks the version that matches your installed SDK. Test
+  with a real build (not Expo Go) — the consent/ATT prompts don't
+  appear in Expo Go.
+- `eas.json` defines `development`, `preview`, and `production` build
+  profiles plus a `submit.production` target. Before the first build,
+  run `eas init` (requires an Expo account) to link the project and
+  populate `extra.eas.projectId` in `app.json`, and set the `owner`
+  field if building under an Expo organization account.
+- Still needed before submission: Apple Developer / Google Play Console
+  accounts, store listing assets (screenshots, descriptions, content
+  rating — declare "Advertising ID" / "Approximate location" data
+  collection in both stores' data-safety questionnaires because of
+  AdMob, and mention the optional bug-report form), and a device test
+  pass.

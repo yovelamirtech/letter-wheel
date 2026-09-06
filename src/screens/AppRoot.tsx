@@ -12,6 +12,7 @@ import SettingsScreen from './SettingsScreen';
 import LevelSelectScreen from './LevelSelectScreen';
 import GameScreen from './GameScreen';
 import BottomBannerAd from '../components/BottomBannerAd';
+import { initializeAds } from '../ads/adsInit';
 
 type Screen =
   | { name: 'splash' }
@@ -30,6 +31,7 @@ export default function AppRoot() {
   useEffect(() => {
     loadProgress().then(setProgress);
     loadSettings();
+    initializeAds();
   }, []);
 
   async function handleResetProgress() {
