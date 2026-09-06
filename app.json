@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "hebrew-word-game",
+    "name": "גלגל מילים",
     "slug": "hebrew-word-game",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -15,7 +15,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.yovlezstudio.wordswheel",
-      "buildNumber": "1"
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSUserTrackingUsageDescription": "המידע ישמש כדי להציג לך פרסומות מותאמות יותר ולתמוך בפיתוח האפליקציה בחינם."
+      }
     },
     "android": {
       "adaptiveIcon": {
