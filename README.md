@@ -105,13 +105,18 @@ rotate the key in the Web3Forms dashboard and re-run the command above.
   AdMob's `AdsConsent` API (required by Google for EEA/UK/Switzerland
   users regardless of where the publisher is based) and, on iOS, asks
   for App Tracking Transparency permission before the SDK initializes.
-  The `expo-tracking-transparency` entry in `package.json` is
-  unpinned (`*`) because this project's Expo SDK version couldn't be
-  matched to an exact package version from here — run
-  `npx expo install expo-tracking-transparency` once before your first
-  build so it locks the version that matches your installed SDK. Test
-  with a real build (not Expo Go) — the consent/ATT prompts don't
+  Test with a real build (not Expo Go) — the consent/ATT prompts don't
   appear in Expo Go.
+- The `expo-audio` plugin in `app.json` is configured with
+  `microphonePermission: false` and `recordAudioAndroid: false`. Without
+  this, the plugin requests the microphone/`RECORD_AUDIO` permission by
+  default even though the app only plays sound effects and never
+  records — an unused permission request like that is a common App
+  Review flag and a bad look in the Play Store's Data Safety section.
+- Settings screen has a "מדיניות פרטיות" link (Settings → מידע) that
+  opens `PRIVACY.md` on GitHub. Apple requires a privacy policy link
+  reachable from inside the app itself, not just in App Store Connect
+  metadata, for apps that show ads/use tracking.
 - `eas.json` defines `development`, `preview`, and `production` build
   profiles plus a `submit.production` target. Before the first build,
   run `eas init` (requires an Expo account) to link the project and

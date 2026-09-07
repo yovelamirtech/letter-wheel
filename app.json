@@ -35,7 +35,13 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-audio",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
       "expo-asset",
       [
         "react-native-google-mobile-ads",
