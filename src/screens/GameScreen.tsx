@@ -43,15 +43,11 @@ import { GameState, Level } from '../types';
 import { useRemainingByLength } from '../hooks/useRemainingByLength';
 import RemainingByLength from '../components/RemainingByLength';
 import { submitToWeb3Forms } from '../utils/web3forms';
+import { MAX_CONTENT_WIDTH, useCircleSize } from '../utils/responsive';
 
-// גודל אזור המעגל וכל אריח אות
-const CIRCLE_SIZE = 260;
-const TILE_SIZE = 56;
-const RADIUS = CIRCLE_SIZE / 2 - TILE_SIZE / 2;
-const CENTER = { x: CIRCLE_SIZE / 2, y: CIRCLE_SIZE / 2 };
-// כמה קרוב צריך האצבע להיות למרכז אות כדי ש"תיגע" בה - קצת יותר סלחני
-// מרדיוס האריח עצמו, כדי שהגרירה תרגיש נוחה ולא תדרוש דיוק מושלם
-const HIT_RADIUS = TILE_SIZE * 0.68;
+// יחס גודל האריח מתוך גודל המעגל - נשמר קבוע כדי שהאריחים יגדלו/יקטנו
+// יחסית למעגל עצמו (שמשתנה לפי גודל המסך, ר' useCircleSize).
+const TILE_SIZE_RATIO = 56 / 260;
 const LINE_THICKNESS = 6;
 
 interface SelectedTile {
@@ -78,6 +74,16 @@ export default function GameScreen({
   const puzzle = useMemo(() => ({ letters: level.letters }), [level]);
   // המילון: נטען פעם אחת בעליית המסך.
   const dictionary = useMemo(() => buildDictionarySet(ALL_WORDS), []);
+
+  // גודל המעגל מחושב מחדש בכל שינוי מידות המסך (למשל סיבוב אייפד או
+  // Split View), כדי שהמעגל ימלא את השטח הזמין בלי להיות זעיר על מסך גדול.
+  const CIRCLE_SIZE = useCircleSize();
+  const TILE_SIZE = Math.round(CIRCLE_SIZE * TILE_SIZE_RATIO);
+  const RADIUS = CIRCLE_SIZE / 2 - TILE_SIZE / 2;
+  const CENTER = useMemo(() => ({ x: CIRCLE_SIZE / 2, y: CIRCLE_SIZE / 2 }), [CIRCLE_SIZE]);
+  // כמה קרוב צריך האצבע להיות למרכז אות כדי ש"תיגע" בה - קצת יותר סלחני
+  // מרדיוס האריח עצמו, כדי שהגרירה תרגיש נוחה ולא תדרוש דיוק מושלם
+  const HIT_RADIUS = TILE_SIZE * 0.68;
 
   const [state, setState] = useState<GameState>(() => restoreState(puzzle, initialFoundWords));
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -211,6 +217,11 @@ export default function GameScreen({
   // הגרסה העדכנית, לא את זו שהייתה קיימת כשה-PanResponder נוצר.
   const tilesRef = useRef(tiles);
   tilesRef.current = tiles;
+  // אותה סיבה: HIT_RADIUS תלוי עכשיו בגודל מסך דינמי (ר' useCircleSize),
+  // ולכן חייב להגיע דרך ref כדי ש-findTileAt (שנקרא מתוך ה-PanResponder
+  // הקפוא) יראה את הערך העדכני גם אחרי סיבוב מסך/שינוי גודל.
+  const hitRadiusRef = useRef(HIT_RADIUS);
+  hitRadiusRef.current = HIT_RADIUS;
 
   // ערך אנימציה (scale) לכל אות במעגל - "פועם" רגע כשהאצבע נוגעת בה
   const tileScales = useRef<Animated.Value[]>([]).current;
@@ -259,7 +270,7 @@ export default function GameScreen({
 
   function findTileAt(point: Point): SelectedTile | null {
     let closest: SelectedTile | null = null;
-    let closestDist = HIT_RADIUS;
+    let closestDist = hitRadiusRef.current;
     for (const tile of tilesRef.current) {
       const d = distance(point, tile.point);
       if (d < closestDist) {
@@ -498,7 +509,13 @@ export default function GameScreen({
                 key={tile.index}
                 style={[
                   styles.letterTile,
-                  { left: tile.point.x - TILE_SIZE / 2, top: tile.point.y - TILE_SIZE / 2 },
+                  {
+                    width: TILE_SIZE,
+                    height: TILE_SIZE,
+                    borderRadius: TILE_SIZE / 2,
+                    left: tile.point.x - TILE_SIZE / 2,
+                    top: tile.point.y - TILE_SIZE / 2,
+                  },
                   isSelected && styles.letterTileSelected,
                   {
                     transform: [
@@ -510,7 +527,13 @@ export default function GameScreen({
                 ]}
                 pointerEvents="none"
               >
-                <Text style={[styles.letterText, isSelected && styles.letterTextSelected]}>
+                <Text
+                  style={[
+                    styles.letterText,
+                    { fontSize: Math.round(TILE_SIZE * 0.464) },
+                    isSelected && styles.letterTextSelected,
+                  ]}
+                >
                   {tile.char}
                 </Text>
               </Animated.View>
@@ -650,6 +673,9 @@ const styles = StyleSheet.create({
   },
   topSection: {
     alignItems: 'center',
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: MAX_CONTENT_WIDTH,
     paddingHorizontal: HEADER_INSET,
     overflow: 'visible',
   },
@@ -731,9 +757,6 @@ const styles = StyleSheet.create({
   },
   letterTile: {
     position: 'absolute',
-    width: TILE_SIZE,
-    height: TILE_SIZE,
-    borderRadius: TILE_SIZE / 2,
     backgroundColor: '#F4C542',
     justifyContent: 'center',
     alignItems: 'center',
@@ -744,7 +767,6 @@ const styles = StyleSheet.create({
   },
   letterText: {
     fontFamily: FONTS.bold,
-    fontSize: 26,
     color: '#3A2E1F',
   },
   letterTextSelected: {
@@ -761,6 +783,9 @@ const styles = StyleSheet.create({
   },
   foundListWrapper: {
     flex: 1,
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: MAX_CONTENT_WIDTH,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#D8C9A8',
     marginTop: 8,
@@ -800,6 +825,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 24,
     width: '100%',
+    maxWidth: 420,
   },
   modalTitle: {
     fontFamily: FONTS.bold,

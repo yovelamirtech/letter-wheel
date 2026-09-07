@@ -3,6 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { tapHaptic } from '../utils/haptics';
 import { playClickSound } from '../utils/sound';
 import { FONTS } from '../utils/fonts';
+import { MAX_CONTENT_WIDTH } from '../utils/responsive';
 
 interface Props {
   onDone: () => void;
@@ -63,6 +64,7 @@ const styles = StyleSheet.create({
     marginBottom: 36,
     gap: 14,
     width: '100%',
+    maxWidth: MAX_CONTENT_WIDTH,
   },
   instructionText: {
     fontFamily: FONTS.regular,
