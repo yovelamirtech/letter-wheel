@@ -9,6 +9,7 @@ import { isLevelUnlocked } from '../data/levels';
 import { HEADER_ICON_SIZE, HEADER_INSET, POINTS_ICON, headerIconStyles } from '../utils/ui';
 import { tapHaptic } from '../utils/haptics';
 import { playClickSound } from '../utils/sound';
+import { MAX_CONTENT_WIDTH } from '../utils/responsive';
 
 interface Props {
   levels: Level[];
@@ -61,7 +62,8 @@ export default function LevelSelectScreen({
       <FlatList
         data={levels}
         keyExtractor={(item) => String(item.index)}
-        contentContainerStyle={styles.list}
+        style={styles.list}
+        contentContainerStyle={styles.listContent}
         renderItem={({ item }) => {
           const unlocked = isLevelUnlocked(item, progress.totalScore);
           const foundCount = getFoundWordsForLevel(progress, item.index).length;
@@ -129,6 +131,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: MAX_CONTENT_WIDTH,
     paddingHorizontal: HEADER_INSET,
     marginBottom: 16,
   },
@@ -150,6 +155,13 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   list: {
+    width: '100%',
+    alignSelf: 'center',
+  },
+  listContent: {
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: MAX_CONTENT_WIDTH,
     paddingHorizontal: 16,
     paddingBottom: 24,
   },

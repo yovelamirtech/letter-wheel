@@ -16,6 +16,7 @@ import { isHapticEnabled, isSoundEffectsEnabled, setHapticEnabled, setSoundEffec
 import { CONFIRMATION_DURATION_MS } from '../utils/ui';
 import { submitToWeb3Forms } from '../utils/web3forms';
 import { FONTS } from '../utils/fonts';
+import { MAX_CONTENT_WIDTH } from '../utils/responsive';
 
 interface Props {
   onBack: () => void;
@@ -348,6 +349,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
     justifyContent: 'space-between',
     alignItems: 'center',
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: MAX_CONTENT_WIDTH,
     paddingHorizontal: 20,
   },
   title: {
@@ -366,6 +370,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: MAX_CONTENT_WIDTH,
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
@@ -442,12 +449,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 24,
     width: '100%',
+    maxWidth: 420,
   },
   bugReportCard: {
     backgroundColor: '#FFF8E7',
     borderRadius: 20,
     padding: 24,
     width: '100%',
+    maxWidth: 420,
   },
   fieldLabel: {
     fontFamily: FONTS.medium,
