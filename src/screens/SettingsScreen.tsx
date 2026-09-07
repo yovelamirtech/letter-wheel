@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
+  Linking,
   Modal,
   ScrollView,
   StyleSheet,
@@ -25,6 +26,11 @@ interface ToggleProps {
   value: boolean;
   onValueChange: (value: boolean) => void;
 }
+
+// עמוד מדיניות הפרטיות מתארח כקובץ README מוצג ב-GitHub, כדי שלא יהיה
+// צורך באחסון ותחזוקה של דף אינטרנט נפרד. אפל דורשת קישור נגיש מתוך
+// האפליקציה עצמה (לא רק במטא-דאטה של החנות) לאפליקציות שמציגות פרסומות.
+const PRIVACY_POLICY_URL = 'https://github.com/yovelamirtech/letter-wheel/blob/main/PRIVACY.md';
 
 const TOGGLE_TRAVEL = 20; // מרחק ההחלקה של הכפתור בפיקסלים: רוחב המסילה (50) פחות הכפתור (24) פחות הריפוד משני הצדדים (3+3)
 
@@ -111,6 +117,12 @@ export default function SettingsScreen({ onBack, onResetProgress }: Props) {
     return () => clearTimeout(timer);
   }, [bugReportSentVisible]);
 
+  function handleOpenPrivacyPolicy() {
+    tapHaptic();
+    playClickSound();
+    Linking.openURL(PRIVACY_POLICY_URL);
+  }
+
   function handleOpenBugReport() {
     tapHaptic();
     playClickSound();
@@ -192,6 +204,14 @@ export default function SettingsScreen({ onBack, onResetProgress }: Props) {
         <View style={styles.card}>
           <TouchableOpacity style={styles.row} onPress={handleOpenBugReport}>
             <Text style={styles.rowLabel}>דיווח על באג</Text>
+            <Text style={styles.chevron}>‹</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.sectionTitle}>מידע</Text>
+        <View style={styles.card}>
+          <TouchableOpacity style={styles.row} onPress={handleOpenPrivacyPolicy}>
+            <Text style={styles.rowLabel}>מדיניות פרטיות</Text>
             <Text style={styles.chevron}>‹</Text>
           </TouchableOpacity>
         </View>
