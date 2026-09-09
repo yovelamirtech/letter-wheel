@@ -36,40 +36,22 @@ npm run web
 The in-app report forms — "דיווח על באג" in Settings and "דיווח על מילה שגויה" in the
 game — submit to [Web3Forms](https://web3forms.com), which forwards them to your inbox.
 
-1. Get a free Access Key at https://web3forms.com using the email that should receive reports.
-2. Copy `.env.example` to `.env` and fill in the key:
+The Access Key ships as the default in `app.json` (`expo.extra.web3formsAccessKey`).
+It's meant to be public — Web3Forms is designed for the key to live in client-side
+code, and protects against abuse with its own rate limiting plus the honeypot field
+already sent by `src/utils/web3forms.ts`. This works out of the box in Expo Go, EAS
+builds, and the Vercel web export with no extra setup.
 
-   ```bash
-   cp .env.example .env
-   # WEB3FORMS_ACCESS_KEY=your-access-key
-   ```
+To use a different key (e.g. after rotating it), get a free Access Key at
+https://web3forms.com and override the default without touching code:
 
-   On Windows PowerShell, write the file through .NET rather than `>`, which
-   defaults to UTF-16 and produces a `.env` that cannot be parsed:
+- **Locally**: copy `.env.example` to `.env` and set `WEB3FORMS_ACCESS_KEY`, then
+  restart the dev server.
+- **EAS builds**: `eas env:set --name WEB3FORMS_ACCESS_KEY --value <key> --environment production`
+- **Vercel web export**: set `WEB3FORMS_ACCESS_KEY` under Project Settings →
+  Environment Variables.
 
-   ```powershell
-   [IO.File]::WriteAllText("$PWD\.env", "WEB3FORMS_ACCESS_KEY=your-access-key`n")
-   ```
-
-3. Restart the dev server so `app.config.js` picks up the new value.
-
-Verify it resolved with `npx expo config --type public` — the output should list
-`env: export WEB3FORMS_ACCESS_KEY` and an `extra.web3formsAccessKey` value. If that
-line is missing, the `.env` file is not being read.
-
-`.env` is git-ignored, so the key never lands in this public repository.
-Without a key the forms show a friendly error instead of sending.
-
-### Shipping to the stores
-
-`app.config.js` is evaluated by EAS at build time, so the key has to live in EAS
-rather than in `.env` (which stays on your machine). Register it once per
-environment:
-
-```bash
-eas env:set --name WEB3FORMS_ACCESS_KEY --value <your-access-key> \
-  --environment production --visibility sensitive
-```
+`app.config.js` checks the env var first and falls back to the `app.json` default.
 
 (`eas env:set` creates or updates in one step; the older `env:create` /
 `env:update` pair is deprecated.)
