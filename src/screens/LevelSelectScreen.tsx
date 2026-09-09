@@ -6,10 +6,11 @@ import { getFoundWordsForLevel } from '../utils/progress';
 import { FONTS } from '../utils/fonts';
 import { colors } from '../theme/colors';
 import { isLevelUnlocked } from '../data/levels';
-import { HEADER_ICON_SIZE, HEADER_INSET, POINTS_ICON, headerIconStyles } from '../utils/ui';
+import { HEADER_ICON_SIZE, HEADER_INSET, headerIconStyles } from '../utils/ui';
 import { tapHaptic } from '../utils/haptics';
 import { playClickSound } from '../utils/sound';
 import { MAX_CONTENT_WIDTH } from '../utils/responsive';
+import PointsBadge from '../components/PointsBadge';
 
 interface Props {
   levels: Level[];
@@ -42,9 +43,7 @@ export default function LevelSelectScreen({
         <Text style={styles.title}>שלבים</Text>
         {/* גלגל ההגדרות יושב בפינה השמאלית העליונה בכל מסכי האפליקציה */}
         <View style={styles.headerLeft}>
-          <Text style={styles.totalScore}>
-            {progress.totalScore} {POINTS_ICON}
-          </Text>
+          <PointsBadge value={progress.totalScore} textStyle={styles.totalScore} />
           <TouchableOpacity
             style={headerIconStyles.button}
             onPress={() => {
@@ -80,9 +79,7 @@ export default function LevelSelectScreen({
                   color={colors.textFaint}
                   style={styles.lockIconCentered}
                 />
-                <Text style={styles.lockedCost}>
-                  {item.requiredScore} {POINTS_ICON}
-                </Text>
+                <PointsBadge value={item.requiredScore} textStyle={styles.lockedCost} />
               </TouchableOpacity>
             );
           }
@@ -108,7 +105,9 @@ export default function LevelSelectScreen({
               </View>
 
               <View style={styles.cardLeft}>
-                {completed && <Text style={styles.completedBadge}>⭐</Text>}
+                {completed && (
+                  <Ionicons name="star" size={16} color={colors.accentDeep} style={styles.completedBadge} />
+                )}
                 <Text style={styles.progressText}>
                   {foundCount}/{item.wordCount}
                 </Text>
@@ -222,7 +221,6 @@ const styles = StyleSheet.create({
     color: '#5B4A32',
   },
   completedBadge: {
-    fontSize: 16,
     marginBottom: 2,
   },
 });

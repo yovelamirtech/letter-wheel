@@ -27,9 +27,9 @@ import {
   CONFIRMATION_DURATION_MS,
   HEADER_ICON_SIZE,
   HEADER_INSET,
-  POINTS_ICON,
   headerIconStyles,
 } from '../utils/ui';
+import PointsBadge from '../components/PointsBadge';
 import { toFinalFormAtEnd } from '../utils/hebrewLetters';
 import { errorHaptic, successHaptic, tapHaptic } from '../utils/haptics';
 import {
@@ -86,7 +86,7 @@ export default function GameScreen({
   const HIT_RADIUS = TILE_SIZE * 0.68;
 
   const [state, setState] = useState<GameState>(() => restoreState(puzzle, initialFoundWords));
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ score: number; isPangram: boolean } | null>(null);
 
   // דיווח על מילה שגויה - נשלח ל-Web3Forms ומגיע למייל של הצוות
   const [reportModalVisible, setReportModalVisible] = useState(false);
@@ -250,7 +250,7 @@ export default function GameScreen({
     ]).start();
   }
 
-  // אנימציית סמל הפידבק (X למילה לא מזוהה, ↺ למילה שכבר נמצאה) - "פועם"
+  // אנימציית סמל הפידבק (X למילה לא מזוהה, סמל רענון למילה שכבר נמצאה) - "פועם"
   // (גדל-קטן) ואז נעלם. שני המקרים חולקים את אותה אנימציה, רק הסמל/הצבע משתנה.
   const feedbackScale = useRef(new Animated.Value(0)).current;
   const feedbackOpacity = useRef(new Animated.Value(0)).current;
@@ -302,7 +302,7 @@ export default function GameScreen({
       successHaptic();
       playCorrectSound();
       const newFoundWord = result.state.foundWords[result.state.foundWords.length - 1];
-      setFeedback(`${newFoundWord.isPangram ? '⭐ ' : ''}+${newFoundWord.score} ${POINTS_ICON}`);
+      setFeedback({ score: newFoundWord.score, isPangram: newFoundWord.isPangram });
       onWordFound(newFoundWord.word, newFoundWord.score);
     } else {
       errorHaptic();
@@ -433,7 +433,7 @@ export default function GameScreen({
               גלגל ההגדרות אחרון, כדי שיישב בפינה השמאלית העליונה
               באותו מקום שבו הוא מופיע בשאר המסכים. */}
           <View style={styles.headerLeft}>
-            <Text style={styles.score}>{state.totalScore} {POINTS_ICON}</Text>
+            <PointsBadge value={state.totalScore} textStyle={styles.score} iconSize={HEADER_ICON_SIZE} />
             <TouchableOpacity
               style={headerIconStyles.button}
               onPress={openReportModal}
@@ -462,7 +462,19 @@ export default function GameScreen({
             ה-X מוצג כשכבת-על (position: absolute) בכוונה - כדי שהופעתו
             לא תזיז שום דבר אחר במסך, לא משנה מה גודל הטקסט/האנימציה שלו. */}
         <View style={styles.inputDisplay}>
-          <Text style={styles.inputText}>{!symbolFeedback ? liveWord || feedback || ' ' : ' '}</Text>
+          {!symbolFeedback && liveWord ? (
+            <Text style={styles.inputText}>{liveWord}</Text>
+          ) : !symbolFeedback && feedback ? (
+            <View style={styles.feedbackRow}>
+              {feedback.isPangram && (
+                <Ionicons name="star" size={22} color={colors.accentDeep} />
+              )}
+              <Text style={styles.inputText}>+{feedback.score}</Text>
+              <Ionicons name="diamond-outline" size={22} color={colors.text} />
+            </View>
+          ) : (
+            <Text style={styles.inputText}> </Text>
+          )}
           {symbolFeedback && (
             <Animated.View
               style={[
@@ -567,10 +579,13 @@ export default function GameScreen({
         <ScrollView style={styles.foundList}>
           {foundWordsNewestFirst.map((fw) => (
             <View key={fw.word} style={styles.foundRow}>
-              <Text style={styles.foundWordText}>
-                {fw.word} {fw.isPangram ? '⭐' : ''}
-              </Text>
-              <Text style={styles.foundScoreText}>+{fw.score} {POINTS_ICON}</Text>
+              <View style={styles.foundWordRow}>
+                <Text style={styles.foundWordText}>{fw.word}</Text>
+                {fw.isPangram && (
+                  <Ionicons name="star" size={14} color={colors.accentDeep} />
+                )}
+              </View>
+              <PointsBadge value={`+${fw.score}`} textStyle={styles.foundScoreText} />
             </View>
           ))}
         </ScrollView>
@@ -715,6 +730,12 @@ const styles = StyleSheet.create({
     writingDirection: 'rtl',
     textAlign: 'center',
   },
+  feedbackRow: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
   circleContainer: {
     position: 'relative',
     marginVertical: 16,
@@ -801,6 +822,11 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#D8C9A8',
+  },
+  foundWordRow: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: 6,
   },
   foundWordText: {
     fontFamily: FONTS.regular,
