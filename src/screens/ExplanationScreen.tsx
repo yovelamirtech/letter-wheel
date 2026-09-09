@@ -1,12 +1,25 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { tapHaptic } from '../utils/haptics';
 import { playClickSound } from '../utils/sound';
 import { FONTS } from '../utils/fonts';
 import { MAX_CONTENT_WIDTH } from '../utils/responsive';
+import { colors } from '../theme/colors';
 
 interface Props {
   onDone: () => void;
+}
+
+const INSTRUCTION_ICON_SIZE = 18;
+
+function InstructionRow({ icon, text }: { icon: keyof typeof Ionicons.glyphMap; text: string }) {
+  return (
+    <View style={styles.instructionRow}>
+      <Ionicons name={icon} size={INSTRUCTION_ICON_SIZE} color={colors.text} style={styles.instructionIcon} />
+      <Text style={styles.instructionText}>{text}</Text>
+    </View>
+  );
 }
 
 export default function ExplanationScreen({ onDone }: Props) {
@@ -15,16 +28,18 @@ export default function ExplanationScreen({ onDone }: Props) {
       <Text style={styles.title}>איך משחקים</Text>
 
       <View style={styles.instructionBox}>
-        <Text style={styles.instructionText}>
-          🔤 גררו אצבע בין האותיות במעגל בלי להרים, כדי לבנות מילה.
-        </Text>
-        <Text style={styles.instructionText}>
-          ✋ ההגשה קורית אוטומטית ברגע שמרימים את האצבע - אין כפתור אישור.
-        </Text>
-        <Text style={styles.instructionText}>
-          💎 כל מילה שווה נקודות לפי אורכה, ובונוס גדול למילה שמשתמשת
-          בכל האותיות במעגל.
-        </Text>
+        <InstructionRow
+          icon="text-outline"
+          text="גררו אצבע בין האותיות במעגל בלי להרים, כדי לבנות מילה."
+        />
+        <InstructionRow
+          icon="hand-left-outline"
+          text="ההגשה קורית אוטומטית ברגע שמרימים את האצבע - אין כפתור אישור."
+        />
+        <InstructionRow
+          icon="diamond-outline"
+          text="כל מילה שווה נקודות לפי אורכה, ובונוס גדול למילה שמשתמשת בכל האותיות במעגל."
+        />
       </View>
 
       <TouchableOpacity
@@ -66,7 +81,16 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MAX_CONTENT_WIDTH,
   },
+  instructionRow: {
+    flexDirection: 'row-reverse',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  instructionIcon: {
+    marginTop: 2,
+  },
   instructionText: {
+    flex: 1,
     fontFamily: FONTS.regular,
     fontSize: 15,
     color: '#5B4A32',
