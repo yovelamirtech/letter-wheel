@@ -34,6 +34,9 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
+    "extra": {
+      "web3formsAccessKey": "3b4fedff-42d5-403c-a286-74981a5944d9"
+    },
     "plugins": [
       [
         "expo-audio",
