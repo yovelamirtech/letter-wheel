@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { ALL_WORDS } from '../data/dictionary';
 import { computeCirclePositions, Point } from '../utils/circleLayout';
@@ -416,7 +417,7 @@ export default function GameScreen({
   const selectedIndices = new Set(selectedPath.map((t) => t.index));
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.topSection}>
         <View style={styles.header}>
           <TouchableOpacity
@@ -676,7 +677,7 @@ export default function GameScreen({
           </KeyboardAvoidingView>
         )}
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -684,7 +685,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF8E7',
-    paddingTop: 48,
+    paddingTop: 12,
   },
   topSection: {
     alignItems: 'center',

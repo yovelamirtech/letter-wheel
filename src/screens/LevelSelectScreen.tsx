@@ -1,5 +1,6 @@
 import React from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Level, StoredProgress } from '../types';
 import { getFoundWordsForLevel } from '../utils/progress';
@@ -28,7 +29,7 @@ export default function LevelSelectScreen({
   onOpenSettings,
 }: Props) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => {
@@ -116,7 +117,7 @@ export default function LevelSelectScreen({
           );
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFF8E7',
-    paddingTop: 48,
+    paddingTop: 12,
   },
   header: {
     flexDirection: 'row-reverse',
