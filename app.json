@@ -15,6 +15,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.yovlezstudio.wordswheel",
+      "appleTeamId": "FLVYDQ86T2",
       "buildNumber": "1",
       "infoPlist": {
         "NSUserTrackingUsageDescription": "המידע ישמש כדי להציג לך פרסומות מותאמות יותר ולתמוך בפיתוח האפליקציה בחינם."
