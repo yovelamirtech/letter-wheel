@@ -25,6 +25,8 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { normalizeWordLetters } from '../src/utils/hebrewLetters';
+import { calculateScore } from '../src/utils/gameLogic';
 
 /**
  * PRNG עם seed קבוע (mulberry32) - כדי שהרצה חוזרת של הסקריפט תמיד
@@ -61,17 +63,9 @@ const OUT_PUZZLES_PATH = path.join(
   LETTER_COUNT === 5 ? 'puzzles.json' : `puzzles${LETTER_COUNT}.json`
 );
 
-const FINAL_TO_BASE: Record<string, string> = {
-  'ך': 'כ',
-  'ם': 'מ',
-  'ן': 'נ',
-  'ף': 'פ',
-  'ץ': 'צ',
-};
-
-function normalize(word: string): string {
-  return [...word].map((c) => FINAL_TO_BASE[c] ?? c).join('');
-}
+// זהה ל-normalizeFinalLetter ב-src/utils/hebrewLetters.ts - מנרמלת מחרוזת
+// שלמה במקום אות בודדת.
+const normalize = normalizeWordLetters;
 
 const HEBREW_ONLY = /^[\u05D0-\u05EA]+$/;
 const MIN_LEN = 2;
@@ -117,18 +111,6 @@ interface PuzzleCandidate {
   sampleWords: string[];
   difficulty: number;
   achievableScore: number;
-}
-
-const PANGRAM_BONUS = 7;
-
-/** זהה ל-calculateScore ב-src/utils/gameLogic.ts - כפולה כאן כי זה סקריפט
- * build-time נפרד שרץ מחוץ לאפליקציה (ב-node, לא ב-RN), ולא משתף קוד
- * runtime. אם משנים את נוסחת הניקוד שם, יש לעדכן גם כאן.
- */
-function scoreForWord(word: string, letterCount: number): number {
-  const base = word.length === 2 ? 1 : word.length;
-  const isPangram = new Set(word).size === letterCount;
-  return base + (isPangram ? PANGRAM_BONUS : 0);
 }
 
 /**
@@ -220,8 +202,9 @@ function generatePuzzles(
     if (puzzles.some((p) => [...p.letters].sort().join('') === key)) continue;
 
     const letters = shuffle([...letterSet]);
+    const puzzleLetters = { letters };
     const achievableScore = matchingWords.reduce(
-      (sum, w) => sum + scoreForWord(w.word, letterCount),
+      (sum, w) => sum + calculateScore(w.word, puzzleLetters),
       0
     );
     puzzles.push({
