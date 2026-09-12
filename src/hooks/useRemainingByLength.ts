@@ -33,7 +33,9 @@ function countSolutionsByLength(letters: string[]): Map<number, number> {
  */
 export function useRemainingByLength(letters: string[], foundWords: string[]): RemainingGroup[] {
   // האותיות הן מערך חדש בכל רינדור של המסך, אז מפתח היציבות הוא התוכן שלו
+  // (lettersKey) ולא ה-reference של letters עצמו.
   const lettersKey = letters.join('');
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- letters מוחלף רק כש-lettersKey משתנה
   const totals = useMemo(() => countSolutionsByLength(letters), [lettersKey]);
 
   return useMemo(() => {
