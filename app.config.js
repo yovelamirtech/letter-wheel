@@ -6,7 +6,6 @@ const appJson = require("./app.json");
 /** @type {import('@expo/config-types').ExpoConfig} */
 module.exports = () => ({
   ...appJson.expo,
-  plugins: [...(appJson.expo.plugins ?? []), "expo-tracking-transparency"],
   extra: {
     ...appJson.expo.extra,
     web3formsAccessKey:
