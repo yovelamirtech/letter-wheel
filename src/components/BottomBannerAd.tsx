@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { BANNER_AD_UNIT_ID } from '../ads/adUnitIds';
+import { colors } from '../theme/colors';
 
 // באנר קבוע בתחתית המסך. אם הפרסומת נכשלת בטעינה (למשל בלי אינטרנט)
 // הוא פשוט לא מציג כלום, ולא תופס מקום בפריסה.
@@ -20,6 +21,6 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     alignItems: 'center',
-    backgroundColor: '#FFF8E7',
+    backgroundColor: colors.background,
   },
 });
