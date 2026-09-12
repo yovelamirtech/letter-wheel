@@ -1,15 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
-  KeyboardAvoidingView,
-  Modal,
   PanResponder,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -23,14 +19,9 @@ import { restoreState, submitWord } from '../utils/gameLogic';
 import { FONTS } from '../utils/fonts';
 import { colors } from '../theme/colors';
 import { shadows } from '../theme/shadows';
-import {
-  ALLOW_REPEATED_TILE_IN_WORD,
-  CONFIRMATION_DURATION_MS,
-  HEADER_ICON_SIZE,
-  HEADER_INSET,
-  headerIconStyles,
-} from '../utils/ui';
+import { ALLOW_REPEATED_TILE_IN_WORD, HEADER_ICON_SIZE, HEADER_INSET, headerIconStyles } from '../utils/ui';
 import PointsBadge from '../components/PointsBadge';
+import ReportModal from '../components/ReportModal';
 import { toFinalFormAtEnd } from '../utils/hebrewLetters';
 import { errorHaptic, successHaptic, tapHaptic } from '../utils/haptics';
 import {
@@ -42,8 +33,8 @@ import {
 } from '../utils/sound';
 import { GameState, Level } from '../types';
 import { useRemainingByLength } from '../hooks/useRemainingByLength';
+import { useReportForm } from '../hooks/useReportForm';
 import RemainingByLength from '../components/RemainingByLength';
-import { submitToWeb3Forms } from '../utils/web3forms';
 import { MAX_CONTENT_WIDTH, useCircleSize } from '../utils/responsive';
 
 // יחס גודל האריח מתוך גודל המעגל - נשמר קבוע כדי שהאריחים יגדלו/יקטנו
@@ -90,65 +81,17 @@ export default function GameScreen({
   const [feedback, setFeedback] = useState<{ score: number; isPangram: boolean } | null>(null);
 
   // דיווח על מילה שגויה - נשלח ל-Web3Forms ומגיע למייל של הצוות
-  const [reportModalVisible, setReportModalVisible] = useState(false);
-  const [reportSubmitted, setReportSubmitted] = useState(false);
-  const [reportWord, setReportWord] = useState('');
-  const [reportMeaning, setReportMeaning] = useState('');
-  const [reportSending, setReportSending] = useState(false);
-  const [reportError, setReportError] = useState<string | null>(null);
-
-  // הודעת האישור נסגרת לבד; אפשר גם לסגור אותה מוקדם בנגיעה.
-  // ה-cleanup מבטל את הטיימר אם המסך יורד או אם המשתמש סגר בעצמו,
-  // כדי לא לעדכן state של קומפוננטה שכבר לא מוצגת.
-  useEffect(() => {
-    if (!reportSubmitted || !reportModalVisible) return;
-    const timer = setTimeout(() => setReportModalVisible(false), CONFIRMATION_DURATION_MS);
-    return () => clearTimeout(timer);
-  }, [reportSubmitted, reportModalVisible]);
-
-  function openReportModal() {
-    tapHaptic();
-    playClickSound();
-    setReportSubmitted(false);
-    setReportWord('');
-    setReportMeaning('');
-    setReportError(null);
-    setReportModalVisible(true);
-  }
-
-  function closeReportModal() {
-    // בזמן שליחה חוסמים סגירה כדי שהמודאל לא ייעלם באמצע הבקשה
-    if (reportSending) return;
-    playClickSound();
-    setReportError(null);
-    setReportModalVisible(false);
-  }
-
-  async function submitReport() {
-    if (reportSending || !reportWord.trim()) return;
-    playClickSound();
-    setReportSending(true);
-    setReportError(null);
-
-    const word = reportWord.trim();
-    const result = await submitToWeb3Forms(`דיווח על מילה שגויה: ${word}`, 'גלגל המילים - מילה', {
+  const wordReport = useReportForm({
+    fromName: 'גלגל המילים - מילה',
+    buildSubject: (word) => `דיווח על מילה שגויה: ${word}`,
+    buildFields: (word, meaning) => ({
       'המילה': word,
-      'הפירוש': reportMeaning.trim() || 'לא צורף פירוש',
+      'הפירוש': meaning || 'לא צורף פירוש',
       'שלב': String(level.index + 1),
       'אותיות השלב': level.letters.join(' '),
-    });
+    }),
+  });
 
-    setReportSending(false);
-
-    if (!result.success) {
-      errorHaptic();
-      setReportError(result.message ?? 'השליחה נכשלה. נסו שוב.');
-      return;
-    }
-
-    successHaptic();
-    setReportSubmitted(true);
-  }
   const [selectedPath, setSelectedPath] = useState<SelectedTile[]>([]);
   const [dragPoint, setDragPoint] = useState<Point | null>(null);
 
@@ -437,7 +380,7 @@ export default function GameScreen({
             <PointsBadge value={state.totalScore} textStyle={styles.score} iconSize={HEADER_ICON_SIZE} />
             <TouchableOpacity
               style={headerIconStyles.button}
-              onPress={openReportModal}
+              onPress={wordReport.open}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
               <Ionicons name="flag-outline" size={HEADER_ICON_SIZE} color={colors.text} />
@@ -592,91 +535,34 @@ export default function GameScreen({
         </ScrollView>
       </View>
 
-      <Modal
-        visible={reportModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={closeReportModal}
-      >
-        {reportSubmitted ? (
-          <TouchableOpacity
-            style={styles.modalOverlay}
-            activeOpacity={1}
-            onPress={() => {
-              playClickSound();
-              setReportModalVisible(false);
-            }}
-          >
-            <View style={styles.modalCard}>
-              <Text style={styles.modalTitle}>תודה!</Text>
-              <Text style={styles.modalMessage}>
-                קיבלנו את הדיווח שלך ונבדוק אותו בהקדם.
-              </Text>
-            </View>
-          </TouchableOpacity>
-        ) : (
-          <KeyboardAvoidingView
-            style={styles.modalOverlay}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          >
-            <View style={styles.modalCard}>
-              <Text style={styles.modalTitle}>דיווח על מילה שגויה</Text>
-              <Text style={styles.modalMessage}>
-                ניסית מילה שאתה בטוח שהיא נכונה, אבל המשחק לא זיהה אותה? ספר
-                לנו עליה ונבדוק אותה.
-              </Text>
-
-              <Text style={styles.fieldLabel}>מה המילה?</Text>
-              <TextInput
-                style={styles.input}
-                value={reportWord}
-                onChangeText={setReportWord}
-                placeholder="לדוגמה: שולחן"
-                placeholderTextColor="#B7A97E"
-                textAlign="right"
-                editable={!reportSending}
-              />
-
-              <Text style={styles.fieldLabel}>מה הפירוש שלה?</Text>
-              <TextInput
-                style={[styles.input, styles.inputMultiline]}
-                value={reportMeaning}
-                onChangeText={setReportMeaning}
-                placeholder="הסבר קצר על משמעות המילה"
-                placeholderTextColor="#B7A97E"
-                textAlign="right"
-                multiline
-                editable={!reportSending}
-              />
-
-              {reportError !== null && <Text style={styles.errorText}>{reportError}</Text>}
-
-              <View style={styles.modalButtons}>
-                <TouchableOpacity
-                  style={[
-                    styles.modalButton,
-                    styles.modalConfirmButton,
-                    (reportSending || !reportWord.trim()) && styles.modalButtonDisabled,
-                  ]}
-                  onPress={submitReport}
-                  activeOpacity={0.8}
-                  disabled={reportSending || !reportWord.trim()}
-                >
-                  <Text style={styles.modalConfirmText}>{reportSending ? 'שולח...' : 'שליחה'}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modalButton, styles.modalCancelButton, reportSending && styles.modalButtonDisabled]}
-                  onPress={closeReportModal}
-                  activeOpacity={0.8}
-                  disabled={reportSending}
-                >
-                  <Text style={styles.modalCancelText}>ביטול</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </KeyboardAvoidingView>
-        )}
-      </Modal>
+      <ReportModal
+        visible={wordReport.visible}
+        submitted={wordReport.submitted}
+        title="דיווח על מילה שגויה"
+        message="ניסית מילה שאתה בטוח שהיא נכונה, אבל המשחק לא זיהה אותה? ספר לנו עליה ונבדוק אותה."
+        primaryField={{
+          label: 'מה המילה?',
+          value: wordReport.primary,
+          onChangeText: wordReport.setPrimary,
+          placeholder: 'לדוגמה: שולחן',
+        }}
+        secondaryField={{
+          label: 'מה הפירוש שלה?',
+          value: wordReport.secondary,
+          onChangeText: wordReport.setSecondary,
+          placeholder: 'הסבר קצר על משמעות המילה',
+          multiline: true,
+        }}
+        sending={wordReport.sending}
+        error={wordReport.error}
+        canSubmit={wordReport.primary.trim().length > 0}
+        onSubmit={wordReport.submit}
+        onClose={wordReport.close}
+        confirmationTitle="תודה!"
+        confirmationMessage="קיבלנו את הדיווח שלך ונבדוק אותו בהקדם."
+        submitButtonStyle={styles.reportSubmitButton}
+        submitTextStyle={styles.reportSubmitText}
+      />
     </SafeAreaView>
   );
 }
@@ -684,7 +570,7 @@ export default function GameScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8E7',
+    backgroundColor: colors.background,
     paddingTop: 12,
   },
   topSection: {
@@ -701,8 +587,8 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 16,
   },
-  score: { fontFamily: FONTS.bold, fontSize: 20, color: '#3A2E1F', writingDirection: 'rtl' },
-  backButton: { fontFamily: FONTS.regular, fontSize: 16, color: '#7A6A52', writingDirection: 'rtl' },
+  score: { fontFamily: FONTS.bold, fontSize: 20, color: colors.text, writingDirection: 'rtl' },
+  backButton: { fontFamily: FONTS.regular, fontSize: 16, color: colors.textMuted, writingDirection: 'rtl' },
   headerLeft: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
@@ -711,12 +597,12 @@ const styles = StyleSheet.create({
   levelLabel: {
     fontFamily: FONTS.regular,
     fontSize: 14,
-    color: '#9C8B6F',
+    color: colors.textFaint,
     writingDirection: 'rtl',
     alignSelf: 'flex-end',
     marginBottom: 8,
   },
-  wordCount: { fontFamily: FONTS.regular, fontSize: 16, color: '#7A6A52', writingDirection: 'rtl' },
+  wordCount: { fontFamily: FONTS.regular, fontSize: 16, color: colors.textMuted, writingDirection: 'rtl' },
   inputDisplay: {
     width: '100%',
     height: 44,
@@ -727,7 +613,7 @@ const styles = StyleSheet.create({
   inputText: {
     fontFamily: FONTS.medium,
     fontSize: 30,
-    color: '#3A2E1F',
+    color: colors.text,
     writingDirection: 'rtl',
     textAlign: 'center',
   },
@@ -764,7 +650,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#EDE0C8',
+    backgroundColor: colors.cardLocked,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -772,27 +658,27 @@ const styles = StyleSheet.create({
     position: 'absolute',
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#C9A227',
+    backgroundColor: colors.line,
   },
   trailLine: {
-    backgroundColor: '#D8C08A',
+    backgroundColor: colors.lineTrail,
   },
   letterTile: {
     position: 'absolute',
-    backgroundColor: '#F4C542',
+    backgroundColor: colors.card,
     justifyContent: 'center',
     alignItems: 'center',
     ...shadows.showcase,
   },
   letterTileSelected: {
-    backgroundColor: '#3A2E1F',
+    backgroundColor: colors.text,
   },
   letterText: {
     fontFamily: FONTS.bold,
-    color: '#3A2E1F',
+    color: colors.text,
   },
   letterTextSelected: {
-    color: '#F4C542',
+    color: colors.card,
   },
   invalidXWrap: {
     position: 'absolute',
@@ -809,7 +695,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MAX_CONTENT_WIDTH,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#D8C9A8',
+    borderTopColor: colors.border,
     marginTop: 8,
   },
   foundList: {
@@ -822,7 +708,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#D8C9A8',
+    borderBottomColor: colors.border,
   },
   foundWordRow: {
     flexDirection: 'row-reverse',
@@ -832,107 +718,21 @@ const styles = StyleSheet.create({
   foundWordText: {
     fontFamily: FONTS.regular,
     fontSize: 18,
-    color: '#3A2E1F',
+    color: colors.text,
     writingDirection: 'rtl',
   },
   foundScoreText: {
     fontFamily: FONTS.regular,
     fontSize: 16,
-    color: '#7A6A52',
+    color: colors.textMuted,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(58, 46, 31, 0.55)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
+  reportSubmitButton: {
+    backgroundColor: colors.text,
   },
-  modalCard: {
-    backgroundColor: '#FFF8E7',
-    borderRadius: 20,
-    padding: 24,
-    width: '100%',
-    maxWidth: 420,
-  },
-  modalTitle: {
-    fontFamily: FONTS.bold,
-    fontSize: 18,
-    color: '#3A2E1F',
-    writingDirection: 'rtl',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  modalMessage: {
-    fontFamily: FONTS.regular,
-    fontSize: 14,
-    color: '#7A6A52',
-    writingDirection: 'rtl',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 20,
-  },
-  fieldLabel: {
-    fontFamily: FONTS.medium,
-    fontSize: 14,
-    color: '#5B4A32',
-    writingDirection: 'rtl',
-    textAlign: 'right',
-    marginBottom: 6,
-  },
-  input: {
-    fontFamily: FONTS.regular,
-    backgroundColor: '#F2E6C9',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E7D6AC',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: '#3A2E1F',
-    writingDirection: 'rtl',
-    marginBottom: 16,
-  },
-  inputMultiline: {
-    height: 70,
-    textAlignVertical: 'top',
-  },
-  modalButtons: {
-    flexDirection: 'row-reverse',
-    gap: 12,
-  },
-  modalButton: {
-    flex: 1,
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  modalButtonDisabled: {
-    opacity: 0.5,
-  },
-  errorText: {
-    fontFamily: FONTS.regular,
-    marginTop: 10,
-    fontSize: 13,
-    color: '#B4342A',
-    textAlign: 'right',
-    writingDirection: 'rtl',
-  },
-  modalConfirmButton: {
-    backgroundColor: '#3A2E1F',
-  },
-  modalConfirmText: {
+  reportSubmitText: {
     fontFamily: FONTS.bold,
     fontSize: 15,
-    color: '#FFF8E7',
-    writingDirection: 'rtl',
-  },
-  modalCancelButton: {
-    backgroundColor: '#EDE0C8',
-  },
-  modalCancelText: {
-    fontFamily: FONTS.bold,
-    fontSize: 15,
-    color: '#3A2E1F',
+    color: colors.background,
     writingDirection: 'rtl',
   },
 });
