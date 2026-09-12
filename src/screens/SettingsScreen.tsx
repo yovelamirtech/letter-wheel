@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { Linking, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { tapHaptic } from '../utils/haptics';
 import { playClickSound } from '../utils/sound';
 import { isHapticEnabled, isSoundEffectsEnabled, setHapticEnabled, setSoundEffectsEnabled } from '../utils/settings';
 import { useReportForm } from '../hooks/useReportForm';
 import ReportModal from '../components/ReportModal';
+import ConfirmModal from '../components/ConfirmModal';
+import SettingsSection from '../components/SettingsSection';
+import SettingsRow from '../components/SettingsRow';
 import Toggle from '../components/Toggle';
 import { FONTS } from '../utils/fonts';
 import { colors } from '../theme/colors';
-import { modalStyles } from '../theme/modalStyles';
 import { MAX_CONTENT_WIDTH } from '../utils/responsive';
 
 interface Props {
@@ -79,37 +81,27 @@ export default function SettingsScreen({ onBack, onResetProgress }: Props) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.sectionTitle}>סאונד</Text>
-        <View style={styles.card}>
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>אפקטים קוליים</Text>
-            <Toggle value={soundEffectsEnabled} onValueChange={handleSoundEffectsChange} />
-          </View>
-        </View>
+        <SettingsSection title="סאונד">
+          <SettingsRow
+            label="אפקטים קוליים"
+            right={<Toggle value={soundEffectsEnabled} onValueChange={handleSoundEffectsChange} />}
+          />
+        </SettingsSection>
 
-        <Text style={styles.sectionTitle}>משוב</Text>
-        <View style={styles.card}>
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>רטט (משוב הפטי)</Text>
-            <Toggle value={hapticEnabled} onValueChange={handleHapticChange} />
-          </View>
-        </View>
+        <SettingsSection title="משוב">
+          <SettingsRow
+            label="רטט (משוב הפטי)"
+            right={<Toggle value={hapticEnabled} onValueChange={handleHapticChange} />}
+          />
+        </SettingsSection>
 
-        <Text style={styles.sectionTitle}>עזרה</Text>
-        <View style={styles.card}>
-          <TouchableOpacity style={styles.row} onPress={bugReport.open}>
-            <Text style={styles.rowLabel}>דיווח על באג</Text>
-            <Text style={styles.chevron}>‹</Text>
-          </TouchableOpacity>
-        </View>
+        <SettingsSection title="עזרה">
+          <SettingsRow label="דיווח על באג" onPress={bugReport.open} />
+        </SettingsSection>
 
-        <Text style={styles.sectionTitle}>מידע</Text>
-        <View style={styles.card}>
-          <TouchableOpacity style={styles.row} onPress={handleOpenPrivacyPolicy}>
-            <Text style={styles.rowLabel}>מדיניות פרטיות</Text>
-            <Text style={styles.chevron}>‹</Text>
-          </TouchableOpacity>
-        </View>
+        <SettingsSection title="מידע">
+          <SettingsRow label="מדיניות פרטיות" onPress={handleOpenPrivacyPolicy} />
+        </SettingsSection>
 
         <TouchableOpacity
           style={styles.dangerButton}
@@ -123,35 +115,19 @@ export default function SettingsScreen({ onBack, onResetProgress }: Props) {
         </TouchableOpacity>
       </ScrollView>
 
-      <Modal visible={confirmVisible} transparent animationType="fade" onRequestClose={() => setConfirmVisible(false)}>
-        <View style={modalStyles.overlay}>
-          <View style={modalStyles.card}>
-            <Text style={modalStyles.title}>מחיקת התקדמות</Text>
-            <Text style={modalStyles.message}>
-              האם אתם בטוחים? הפעולה תמחק את כל הניקוד והמילים שנמצאו, ולא ניתן לבטל אותה.
-            </Text>
-            <View style={modalStyles.buttons}>
-              <TouchableOpacity
-                style={[modalStyles.button, styles.dangerConfirmButton]}
-                onPress={handleConfirmReset}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.dangerConfirmText}>כן, למחוק</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[modalStyles.button, modalStyles.cancelButton]}
-                onPress={() => {
-                  playClickSound();
-                  setConfirmVisible(false);
-                }}
-                activeOpacity={0.8}
-              >
-                <Text style={modalStyles.cancelText}>לא</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <ConfirmModal
+        visible={confirmVisible}
+        title="מחיקת התקדמות"
+        message="האם אתם בטוחים? הפעולה תמחק את כל הניקוד והמילים שנמצאו, ולא ניתן לבטל אותה."
+        confirmLabel="כן, למחוק"
+        confirmButtonStyle={styles.dangerConfirmButton}
+        confirmTextStyle={styles.dangerConfirmText}
+        onConfirm={handleConfirmReset}
+        onCancel={() => {
+          playClickSound();
+          setConfirmVisible(false);
+        }}
+      />
 
       <ReportModal
         visible={bugReport.visible}
@@ -221,38 +197,6 @@ const styles = StyleSheet.create({
     maxWidth: MAX_CONTENT_WIDTH,
     paddingHorizontal: 20,
     paddingBottom: 40,
-  },
-  sectionTitle: {
-    fontFamily: FONTS.bold,
-    fontSize: 14,
-    color: colors.textMuted,
-    writingDirection: 'rtl',
-    textAlign: 'right',
-    marginTop: 28,
-    marginBottom: 10,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: colors.accentBorder,
-  },
-  row: {
-    flexDirection: 'row-reverse',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 16,
-  },
-  rowLabel: {
-    fontFamily: FONTS.regular,
-    fontSize: 16,
-    color: colors.text,
-    writingDirection: 'rtl',
-  },
-  chevron: {
-    fontSize: 18,
-    color: colors.textFaint,
   },
   dangerButton: {
     marginTop: 32,
