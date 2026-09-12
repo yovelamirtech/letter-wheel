@@ -1,5 +1,6 @@
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { tapHaptic } from '../utils/haptics';
 import { playClickSound } from '../utils/sound';
@@ -14,7 +15,7 @@ interface Props {
 
 export default function SplashScreen({ onStart, onOpenSettings }: Props) {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <TouchableOpacity
         style={[headerIconStyles.button, styles.settingsButton]}
         onPress={() => {
@@ -56,7 +57,7 @@ export default function SplashScreen({ onStart, onOpenSettings }: Props) {
       >
         <Text style={styles.startButtonText}>בואו נתחיל</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
