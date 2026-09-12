@@ -1,11 +1,5 @@
 // טיפוסי הליבה של המשחק
 
-export interface LetterTile {
-  id: string;       // מזהה ייחודי לאות בתוך המעגל (חשוב כי אותה אות יכולה להופיע פעמיים)
-  char: string;      // האות עצמה, למשל 'א'
-  angle: number;     // מיקום זוויתי במעגל (במעלות), משמש לפריסה
-}
-
 export interface PuzzleLetters {
   letters: string[]; // רשימת האותיות במעגל, למשל ['א','ב','ג','ד','ה','ו']
   requiredLetter?: string; // אופציונלי: אות חובה שכל מילה חייבת להכיל (כמו ב-Spelling Bee)
