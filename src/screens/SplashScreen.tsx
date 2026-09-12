@@ -64,7 +64,7 @@ export default function SplashScreen({ onStart, onOpenSettings }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8E7',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     width: 220,
     height: 220,
     borderRadius: 110,
-    backgroundColor: '#F7C948',
+    backgroundColor: colors.accent,
     opacity: 0.16,
   },
   glowInner: {
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     width: 172,
     height: 172,
     borderRadius: 86,
-    backgroundColor: '#F7C948',
+    backgroundColor: colors.accent,
     opacity: 0.25,
   },
   accentDot: {
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     height: 16,
     top: 14,
     left: 22,
-    backgroundColor: '#C9891B',
+    backgroundColor: colors.accentDeep,
     opacity: 0.7,
   },
   accentDotTopRight: {
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     height: 12,
     top: 30,
     right: 10,
-    backgroundColor: '#3A2E1F',
+    backgroundColor: colors.text,
     opacity: 0.3,
   },
   accentDotBottomLeft: {
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     height: 12,
     bottom: 20,
     left: 6,
-    backgroundColor: '#3A2E1F',
+    backgroundColor: colors.text,
     opacity: 0.3,
   },
   accentDotBottomRight: {
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     height: 18,
     bottom: 8,
     right: 26,
-    backgroundColor: '#C9891B',
+    backgroundColor: colors.accentDeep,
     opacity: 0.7,
   },
   accentDotRight: {
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     height: 9,
     top: '48%',
     right: -4,
-    backgroundColor: '#F7C948',
+    backgroundColor: colors.accent,
     opacity: 0.9,
   },
   iconImage: {
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     // משקל על פונט מותאם גורמת ל-Android לזייף הדגשה ולעוות את האותיות.
     fontFamily: FONTS.display,
     fontSize: 40,
-    color: '#3A2E1F',
+    color: colors.text,
     letterSpacing: 1,
     lineHeight: 52,
     writingDirection: 'rtl',
@@ -161,13 +161,13 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.regular,
     fontSize: 16,
     lineHeight: 24,
-    color: '#7A6A52',
+    color: colors.textMuted,
     writingDirection: 'rtl',
     textAlign: 'center',
     marginBottom: 40,
   },
   startButton: {
-    backgroundColor: '#3A2E1F',
+    backgroundColor: colors.text,
     paddingVertical: 16,
     paddingHorizontal: 40,
     borderRadius: 28,
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
   startButtonText: {
     fontFamily: FONTS.bold,
     fontSize: 18,
-    color: '#FFF8E7',
+    color: colors.background,
     writingDirection: 'rtl',
   },
 });
