@@ -12,6 +12,7 @@ import { tapHaptic } from '../utils/haptics';
 import { playClickSound } from '../utils/sound';
 import { MAX_CONTENT_WIDTH } from '../utils/responsive';
 import PointsBadge from '../components/PointsBadge';
+import LevelCard from '../components/LevelCard';
 
 interface Props {
   levels: Level[];
@@ -64,58 +65,14 @@ export default function LevelSelectScreen({
         keyExtractor={(item) => String(item.index)}
         style={styles.list}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => {
-          const unlocked = isLevelUnlocked(item, progress.totalScore);
-          const foundCount = getFoundWordsForLevel(progress, item.index).length;
-          const completed = foundCount >= item.wordCount;
-
-          if (!unlocked) {
-            // כרטיס נעול: תצוגה ממורכזת - מנעול באמצע, ומתחתיו רק
-            // המספר הנדרש + אייקון הנקודות. בלי "דורש X נקודות".
-            return (
-              <TouchableOpacity style={[styles.card, styles.cardLocked]} disabled activeOpacity={1}>
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={22}
-                  color={colors.textFaint}
-                  style={styles.lockIconCentered}
-                />
-                <PointsBadge value={item.requiredScore} textStyle={styles.lockedCost} />
-              </TouchableOpacity>
-            );
-          }
-
-          return (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => {
-                tapHaptic();
-                playClickSound();
-                onSelectLevel(item);
-              }}
-              activeOpacity={0.7}
-            >
-              <View style={styles.cardRight}>
-                <View style={styles.letterRow}>
-                  {item.letters.map((char, i) => (
-                    <View key={i} style={styles.letterBadge}>
-                      <Text style={styles.letterBadgeText}>{char}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-
-              <View style={styles.cardLeft}>
-                {completed && (
-                  <Ionicons name="star" size={16} color={colors.accentDeep} style={styles.completedBadge} />
-                )}
-                <Text style={styles.progressText}>
-                  {foundCount}/{item.wordCount}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        }}
+        renderItem={({ item }) => (
+          <LevelCard
+            level={item}
+            unlocked={isLevelUnlocked(item, progress.totalScore)}
+            foundCount={getFoundWordsForLevel(progress, item.index).length}
+            onPress={onSelectLevel}
+          />
+        )}
       />
     </SafeAreaView>
   );
@@ -124,7 +81,7 @@ export default function LevelSelectScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8E7',
+    backgroundColor: colors.background,
     paddingTop: 12,
   },
   header: {
@@ -140,13 +97,13 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FONTS.display,
     fontSize: 26,
-    color: '#3A2E1F',
+    color: colors.text,
     writingDirection: 'rtl',
   },
   totalScore: {
     fontFamily: FONTS.regular,
     fontSize: 16,
-    color: '#7A6A52',
+    color: colors.textMuted,
     writingDirection: 'rtl',
   },
   headerLeft: {
@@ -164,64 +121,5 @@ const styles = StyleSheet.create({
     maxWidth: MAX_CONTENT_WIDTH,
     paddingHorizontal: 16,
     paddingBottom: 24,
-  },
-  card: {
-    flexDirection: 'row-reverse',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#F4C542',
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    marginBottom: 10,
-    minHeight: 76,
-  },
-  cardLocked: {
-    backgroundColor: '#EDE0C8',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cardRight: {
-    alignItems: 'flex-end',
-  },
-  cardLeft: {
-    alignItems: 'flex-end',
-    minWidth: 48,
-  },
-  letterRow: {
-    flexDirection: 'row-reverse',
-    marginTop: 6,
-    gap: 6,
-  },
-  letterBadge: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: '#FFF8E7',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  letterBadgeText: {
-    fontFamily: FONTS.bold,
-    fontSize: 14,
-    color: '#3A2E1F',
-  },
-  lockIconCentered: {
-    marginBottom: 4,
-  },
-  lockedCost: {
-    fontFamily: FONTS.medium,
-    fontSize: 14,
-    color: '#9C8B6F',
-    writingDirection: 'rtl',
-  },
-  progressText: {
-    fontFamily: FONTS.medium,
-    fontSize: 14,
-    color: '#5B4A32',
-  },
-  completedBadge: {
-    marginBottom: 2,
   },
 });

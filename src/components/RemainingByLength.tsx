@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { FONTS } from '../utils/fonts';
+import { colors } from '../theme/colors';
 import { RemainingGroup } from '../hooks/useRemainingByLength';
 
 // ריבוע קטן שמייצג אות אחת. מספיק גדול כדי שאפשר יהיה לספור ריבועים
@@ -62,12 +63,12 @@ const styles = StyleSheet.create({
     width: SQUARE_SIZE,
     height: SQUARE_SIZE,
     borderRadius: 2,
-    backgroundColor: '#D8C08A',
+    backgroundColor: colors.lineTrail,
   },
   count: {
     fontFamily: FONTS.regular,
     fontSize: 10,
     lineHeight: 12,
-    color: '#9C8B6F',
+    color: colors.textFaint,
   },
 });

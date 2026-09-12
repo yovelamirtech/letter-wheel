@@ -23,4 +23,8 @@ export const colors = {
   error: '#C0392B',
   errorDeep: '#B4342A',
   warning: '#B5651D',
+  danger: '#D64545',
+
+  line: '#C9A227',
+  lineTrail: '#D8C08A',
 } as const;

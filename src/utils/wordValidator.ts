@@ -1,5 +1,5 @@
 import { PuzzleLetters, ValidationResult } from '../types';
-import { normalizeFinalLetter } from './hebrewLetters';
+import { normalizeFinalLetter, uniqueNormalizedLetters } from './hebrewLetters';
 
 export const MIN_WORD_LENGTH = 2;
 
@@ -42,7 +42,7 @@ export function usesOnlyAvailableLetters(word: string, availableLetters: string[
  * בודקת אם מילה היא "פנגרם" - משתמשת בכל האותיות הזמינות לפחות פעם אחת.
  */
 export function isPangram(word: string, availableLetters: string[]): boolean {
-  const wordLetters = new Set([...word].map(normalizeFinalLetter));
+  const wordLetters = uniqueNormalizedLetters(word);
   return availableLetters.every((letter) => wordLetters.has(letter));
 }
 

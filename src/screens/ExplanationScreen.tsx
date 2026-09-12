@@ -60,7 +60,7 @@ export default function ExplanationScreen({ onDone }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF8E7',
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
@@ -68,12 +68,12 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: FONTS.display,
     fontSize: 26,
-    color: '#3A2E1F',
+    color: colors.text,
     writingDirection: 'rtl',
     marginBottom: 20,
   },
   instructionBox: {
-    backgroundColor: '#F4E9D0',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 18,
     marginBottom: 36,
@@ -93,13 +93,13 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: FONTS.regular,
     fontSize: 15,
-    color: '#5B4A32',
+    color: colors.textMuted,
     writingDirection: 'rtl',
     textAlign: 'right',
     lineHeight: 21,
   },
   doneButton: {
-    backgroundColor: '#3A2E1F',
+    backgroundColor: colors.text,
     paddingVertical: 16,
     paddingHorizontal: 40,
     borderRadius: 28,
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
   doneButtonText: {
     fontFamily: FONTS.bold,
     fontSize: 18,
-    color: '#FFF8E7',
+    color: colors.background,
     writingDirection: 'rtl',
   },
 });
