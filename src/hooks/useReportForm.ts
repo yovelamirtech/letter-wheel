@@ -28,11 +28,11 @@ export function useReportForm({ fromName, buildSubject, buildFields }: UseReport
     return () => clearTimeout(timer);
   }, [submitted, visible]);
 
-  function open() {
+  function open(initialPrimary?: string) {
     tapHaptic();
     playClickSound();
     setSubmitted(false);
-    setPrimary('');
+    setPrimary(initialPrimary ?? '');
     setSecondary('');
     setError(null);
     setVisible(true);
