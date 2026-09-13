@@ -6,6 +6,11 @@ import { radii } from '../theme/radii';
 // משותף למסך ההגדרות ולמסך המשחק כדי ששני הדיווחים יתנהגו אותו דבר.
 export const CONFIRMATION_DURATION_MS = 1000;
 
+// כשאותה מילה נדחית בדיוק REPEATED_WRONG_GUESS_THRESHOLD פעמים באותו שלב,
+// כפתור הדיווח (הדגל) מהבהב למשך משך הזמן הזה, כרמז שאולי כדאי לדווח עליה.
+export const REPEATED_WRONG_GUESS_THRESHOLD = 3;
+export const FLAG_HINT_DURATION_MS = 4500;
+
 // גלגל ההגדרות מופיע בשלושה מסכים שונים. כדי שהוא לא "יקפוץ" בין מעברי
 // מסכים, המידות והמיקום מוגדרים כאן פעם אחת במקום להשתכפל בכל מסך.
 export const HEADER_INSET = 16; // מרחק אופקי מקצה המסך

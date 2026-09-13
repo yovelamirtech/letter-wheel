@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,7 +7,13 @@ import { buildDictionarySet } from '../utils/wordValidator';
 import { restoreState, submitWord } from '../utils/gameLogic';
 import { FONTS } from '../utils/fonts';
 import { colors } from '../theme/colors';
-import { HEADER_ICON_SIZE, HEADER_INSET, headerIconStyles } from '../utils/ui';
+import {
+  FLAG_HINT_DURATION_MS,
+  HEADER_ICON_SIZE,
+  HEADER_INSET,
+  REPEATED_WRONG_GUESS_THRESHOLD,
+  headerIconStyles,
+} from '../utils/ui';
 import PointsBadge from '../components/PointsBadge';
 import ReportModal from '../components/ReportModal';
 import LetterCircle from '../components/LetterCircle';
@@ -82,6 +88,55 @@ export default function GameScreen({
     ]).start(() => setSymbolFeedback(null));
   }
 
+  // סופר, לכל שלב בנפרד, כמה פעמים בדיוק אותה מילה (אחרי נורמליזציה) נדחתה
+  // כלא מוכרת במילון. מגיע ל-REPEATED_WRONG_GUESS_THRESHOLD -> הדגל מהבהב,
+  // כרמז שכדאי אולי לדווח עליה. ref ולא state כי אין צורך ברינדור מחדש
+  // בכל ניסיון בודד - רק כשמגיעים לסף.
+  const wrongGuessCounts = useRef<Map<string, number>>(new Map()).current;
+  const [flashingWord, setFlashingWord] = useState<string | null>(null);
+  const flagFlashAnim = useRef(new Animated.Value(0)).current;
+  const flagFlashLoop = useRef<Animated.CompositeAnimation | null>(null);
+  const flagHintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function stopFlagFlash() {
+    flagFlashLoop.current?.stop();
+    flagFlashLoop.current = null;
+    if (flagHintTimer.current) {
+      clearTimeout(flagHintTimer.current);
+      flagHintTimer.current = null;
+    }
+    flagFlashAnim.setValue(0);
+    setFlashingWord(null);
+  }
+
+  function startFlagFlash(word: string) {
+    setFlashingWord(word);
+    flagFlashLoop.current?.stop();
+    flagFlashLoop.current = Animated.loop(
+      Animated.sequence([
+        Animated.timing(flagFlashAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
+        Animated.timing(flagFlashAnim, { toValue: 0, duration: 400, useNativeDriver: true }),
+      ])
+    );
+    flagFlashLoop.current.start();
+
+    // כל דחייה נוספת של אותה מילה (לאחר שהגענו לסף) מאריכה את ההבהוב מחדש,
+    // כדי שהוא לא ייעלם באמצע שהמשתמש עדיין מנסה.
+    if (flagHintTimer.current) clearTimeout(flagHintTimer.current);
+    flagHintTimer.current = setTimeout(stopFlagFlash, FLAG_HINT_DURATION_MS);
+  }
+
+  function registerWrongGuess(word: string) {
+    const nextCount = (wrongGuessCounts.get(word) ?? 0) + 1;
+    wrongGuessCounts.set(word, nextCount);
+    if (nextCount >= REPEATED_WRONG_GUESS_THRESHOLD) {
+      startFlagFlash(word);
+    }
+  }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- ניקוי בעת פירוק בלבד
+  useEffect(() => stopFlagFlash, []);
+
   const stateRef = useRef(state);
   stateRef.current = state;
 
@@ -103,6 +158,9 @@ export default function GameScreen({
         playDuplicateSound();
       } else {
         playIncorrectSound();
+      }
+      if (result.reason === 'not_in_dictionary') {
+        registerWrongGuess(word);
       }
       setFeedback(null);
       triggerSymbolFeedback(isDuplicate ? 'duplicate' : 'invalid');
@@ -142,6 +200,8 @@ export default function GameScreen({
 
   const liveWord = selectedPath.map((t) => t.char).join('');
 
+  const flagFlashOpacity = flagFlashAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 0.35] });
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.topSection}>
@@ -161,13 +221,30 @@ export default function GameScreen({
               באותו מקום שבו הוא מופיע בשאר המסכים. */}
           <View style={styles.headerLeft}>
             <PointsBadge value={state.totalScore} textStyle={styles.score} iconSize={HEADER_ICON_SIZE} />
-            <TouchableOpacity
-              style={headerIconStyles.button}
-              onPress={wordReport.open}
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            >
-              <Ionicons name="flag-outline" size={HEADER_ICON_SIZE} color={colors.text} />
-            </TouchableOpacity>
+            <View style={styles.flagWrap}>
+              <TouchableOpacity
+                style={headerIconStyles.button}
+                onPress={() => {
+                  const word = flashingWord;
+                  if (word) stopFlagFlash();
+                  wordReport.open(word ?? undefined);
+                }}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
+                <Animated.View style={{ opacity: flagFlashOpacity }}>
+                  <Ionicons
+                    name="flag-outline"
+                    size={HEADER_ICON_SIZE}
+                    color={flashingWord ? colors.error : colors.text}
+                  />
+                </Animated.View>
+              </TouchableOpacity>
+              {flashingWord && (
+                <Text style={styles.flagHint} pointerEvents="none">
+                  אולי זו מילה תקנית?
+                </Text>
+              )}
+            </View>
             <TouchableOpacity
               style={headerIconStyles.button}
               onPress={() => {
@@ -312,6 +389,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
     alignItems: 'center',
     gap: 10,
+  },
+  flagWrap: {
+    position: 'relative',
+  },
+  // תלוי מתחת לדגל בלי להזיז אף אלמנט אחר בכותרת - הכיתוב מופיע רק
+  // לזמן ההבהוב (ר' FLAG_HINT_DURATION_MS) ונעלם לבד.
+  flagHint: {
+    position: 'absolute',
+    top: 36,
+    width: 130,
+    left: -49,
+    fontFamily: FONTS.regular,
+    fontSize: 11,
+    color: colors.error,
+    textAlign: 'center',
+    writingDirection: 'rtl',
   },
   levelLabel: {
     fontFamily: FONTS.regular,
